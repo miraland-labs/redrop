@@ -1,0 +1,24 @@
+{
+    "ContactListName": "Redrop",
+    "Description": "Metaplex redrops",
+    "Topics": [
+     {
+         "TopicName": "Token",
+         "DisplayName": "Token Redrop",
+         "Description": "Hear about new token-airdrop redrops that you receive.",
+         "DefaultSubscriptionStatus": "OPT_IN"
+     },
+     {
+         "TopicName": "Candy",
+         "DisplayName": "Candy Redrop",
+         "Description": "Hear about new candy-machine mint redrops that you receive.",
+         "DefaultSubscriptionStatus": "OPT_IN"
+     },
+     {
+         "TopicName": "Edition",
+         "DisplayName": "Limited Edition Print Redrop",
+         "Description": "Hear about new limited-edition print redrops that you receive.",
+         "DefaultSubscriptionStatus": "OPT_IN"
+     }
+    ]
+}

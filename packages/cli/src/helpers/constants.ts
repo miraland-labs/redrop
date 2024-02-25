@@ -1,22 +1,22 @@
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solarti/web3.js';
 
 export const CANDY_MACHINE_PROGRAM_V2_ID = new PublicKey(
-  'cndy3Z4yapfJBmL3ShUp5exZKqR3z33thTzeNMm2gRZ',
+  'CandyREq6quLbyaDQ3z8aHp5yTFHoinYMaG2QuPD3333',
 );
 export const TOKEN_METADATA_PROGRAM_ID = new PublicKey(
-  'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s',
+  'Meta88XpDHcSJZDFiHop6c9sXaufkZX5depkZyrYBWv',
 );
 export const SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID = new PublicKey(
-  'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL',
+  'ATAccPjxdgWfJKKN4PmfJ55FbEDEwD8zJUwVjuL9MuHy',
 );
 export const TOKEN_PROGRAM_ID = new PublicKey(
-  'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+  'Token4Q2B47VCdUy8u3rSTMMk2bGA1k7eN8qfKSzdiM',
 );
-export const GUMDROP_DISTRIBUTOR_ID = new PublicKey(
-  'gdrpGjVffourzkdDRrQmySw4aTHr8a3xmQzzxSwFD1a',
+export const REDROP_DISTRIBUTOR_ID = new PublicKey(
+  'rdrppvBxnXBwBXVLTsoGuBZiZfhJu3JtGLUfMaJpgjQ',
 );
-export const GUMDROP_TEMPORAL_SIGNER = new PublicKey(
-  'MSv9H2sMceAzccBganUXwGq3GXgqYAstmZAbFDZYbAV',
+export const REDROP_TEMPORAL_SIGNER = new PublicKey(
+  'rtmpdnobAhg4kV9HoymUYTQsto1jGvtu2TUGj6jXvPv',
 );
 
 export const DEFAULT_TIMEOUT = 15000;

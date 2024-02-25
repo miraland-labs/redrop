@@ -1,15 +1,105 @@
 import {
+  Blockhash,
   Commitment,
   Connection,
+  FeeCalculator,
+  Keypair,
   RpcResponseAndContext,
   SignatureStatus,
   SimulatedTransactionResponse,
   Transaction,
+  TransactionInstruction,
   TransactionSignature,
 } from '@solarti/web3.js';
-import { getUnixTs, sleep } from './various';
-import { DEFAULT_TIMEOUT } from './constants';
 import log from 'loglevel';
+
+import { sleep } from './common';
+
+interface BlockhashAndFeeCalculator {
+  blockhash: Blockhash;
+  feeCalculator: FeeCalculator;
+}
+
+export const DEFAULT_TIMEOUT = 15000;
+
+export const getUnixTs = () => {
+  return new Date().getTime() / 1000;
+};
+
+export const envFor = (connection: Connection): string => {
+  const endpoint = (connection as any)._rpcEndpoint;
+  const regex = /https:\/\/metaplex.([^.]*).rpcpool.com/;
+  const match = endpoint.match(regex);
+  if (match && match[1]) {
+    return match[1];
+  }
+  return 'mainnet-mln';
+};
+
+export const explorerLinkFor = (
+  txid: TransactionSignature,
+  connection: Connection,
+): string => {
+  return `https://explorer.miraland.top/tx/${txid}?cluster=${envFor(connection)}`;
+};
+
+export const sendTransactionWithRetryWithKeypair = async (
+  connection: Connection,
+  wallet: Keypair,
+  instructions: TransactionInstruction[],
+  signers: Keypair[],
+  commitment: Commitment = 'confirmed',
+  includesFeePayer: boolean = false,
+  block?: BlockhashAndFeeCalculator,
+  beforeSend?: () => void,
+) => {
+  const transaction = new Transaction();
+
+  // mira latest
+  // const latestBlockhash =  await connection.getLatestBlockhash(commitment);
+  // const transaction = new Transaction(
+  //   {
+  //     blockhash: latestBlockhash.blockhash,
+  //     feePayer: wallet.publicKey,
+  //     lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+  //   }
+  // );
+
+  instructions.forEach(instruction => transaction.add(instruction));
+  transaction.recentBlockhash = (
+    block || (await connection.getRecentBlockhash(commitment))
+  ).blockhash;
+
+  // mira latest
+  // transaction.recentBlockhash = latestBlockhash.blockhash;
+
+  if (includesFeePayer) {
+    transaction.setSigners(...signers.map(s => s.publicKey));
+  } else {
+    transaction.setSigners(
+      // fee payed by the wallet owner
+      wallet.publicKey,
+      ...signers.map(s => s.publicKey),
+    );
+  }
+
+  if (signers.length > 0) {
+    transaction.sign(...[wallet, ...signers]);
+  } else {
+    transaction.sign(wallet);
+  }
+
+  if (beforeSend) {
+    beforeSend();
+  }
+
+  const { txid, slot } = await sendSignedTransaction({
+    connection,
+    signedTransaction: transaction,
+  });
+
+  return { txid, slot };
+};
 
 export async function sendSignedTransaction({
   signedTransaction,
@@ -63,7 +153,7 @@ export async function sendSignedTransaction({
 
     slot = confirmation?.slot || 0;
   } catch (err) {
-    // log.error('Timeout Error caught', err); // vanilla
+    // log.error('Timeout Error caught', err);
     log.error('Error caught awaitTransactionSignatureConfirmation', err);
     if (err.timeout) {
       throw new Error('Timed out awaiting confirmation on transaction');
@@ -71,7 +161,7 @@ export async function sendSignedTransaction({
     let simulateResult: SimulatedTransactionResponse | null = null;
     try {
       simulateResult = (
-        await simulateTransaction(connection, signedTransaction, 'confirmed')
+        await simulateTransaction(connection, signedTransaction)
       ).value;
     } catch (e) {
       log.error('Simulate Transaction error', e);
@@ -89,7 +179,6 @@ export async function sendSignedTransaction({
       }
       throw new Error(JSON.stringify(simulateResult.err));
     }
-    log.error('Got this far.');
     // throw new Error('Transaction failed');
   } finally {
     done = true;
@@ -102,32 +191,12 @@ export async function sendSignedTransaction({
 async function simulateTransaction(
   connection: Connection,
   transaction: Transaction,
-  commitment: Commitment,
 ): Promise<RpcResponseAndContext<SimulatedTransactionResponse>> {
-  // vanilla
-  // // @ts-ignore
-  // transaction.recentBlockhash = await connection._recentBlockhash(
-  //   // @ts-ignore
-  //   connection._disableBlockhashCaching,
-  // );
-  transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-  const signData = transaction.serializeMessage();
-  // @ts-ignore
-  const wireTransaction = transaction._serialize(signData);
-  const encodedTransaction = wireTransaction.toString('base64');
-  const config: any = { encoding: 'base64', commitment };
-  const args = [encodedTransaction, config];
-
-  // @ts-ignore
-  const res = await connection._rpcRequest('simulateTransaction', args);
-  if (res.error) {
-    throw new Error('failed to simulate transaction: ' + res.error.message);
-  }
-  return res.result;
+  const message = transaction.compileMessage();
+  return await connection.simulateTransaction(message);
 }
 
-async function awaitTransactionSignatureConfirmation(
+export async function awaitTransactionSignatureConfirmation(
   txid: TransactionSignature,
   timeout: number,
   connection: Connection,
@@ -183,6 +252,7 @@ async function awaitTransactionSignatureConfirmation(
             txid,
           ]);
           status = signatureStatuses && signatureStatuses.value[0];
+          console.log(explorerLinkFor(txid, connection));
           if (!done) {
             if (!status) {
               log.debug('REST null result for', txid, status);
@@ -191,7 +261,7 @@ async function awaitTransactionSignatureConfirmation(
               done = true;
               reject(status.err);
             } else if (!status.confirmations) {
-              log.debug('REST no confirmations for', txid, status);
+              log.error('REST no confirmations for', txid, status);
             } else {
               log.debug('REST confirmation for', txid, status);
               done = true;
@@ -208,13 +278,9 @@ async function awaitTransactionSignatureConfirmation(
     }
   });
 
-  log.debug('[subscription id returned from connection.onSignature(...)]subId: ', subId);
   //@ts-ignore
-  // if (connection._signatureSubscriptions?.[subId]) {
+  if (connection._subscriptionDisposeFunctionsByClientSubscriptionId[subId])
     connection.removeSignatureListener(subId);
-  // } else {
-  //   log.debug('connection has no field named _signatureSubscriptions');
-  // }
   done = true;
   log.debug('Returning status', status);
   return status;

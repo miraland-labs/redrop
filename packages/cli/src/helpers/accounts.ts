@@ -1,11 +1,11 @@
-import { Keypair, PublicKey } from '@solana/web3.js';
+import { Keypair, PublicKey } from '@solarti/web3.js';
 import {
   SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID,
   TOKEN_METADATA_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
-  GUMDROP_DISTRIBUTOR_ID,
+  REDROP_DISTRIBUTOR_ID,
 } from './constants';
-import * as anchor from '@project-serum/anchor';
+import * as anchor from '@solarti/anchor';
 import log from 'loglevel';
 
 export const getMetadata = async (
@@ -70,7 +70,7 @@ export const getTokenWallet = async function (
   )[0];
 };
 
-export async function loadGumdropProgram(
+export async function loadRedropProgram(
   walletKeyPair: Keypair,
   env: string,
   customRpcUrl?: string,
@@ -85,10 +85,10 @@ export async function loadGumdropProgram(
 
   const walletWrapper = new anchor.Wallet(walletKeyPair);
   const provider = new anchor.Provider(solConnection, walletWrapper, {
-    preflightCommitment: 'recent',
+    preflightCommitment: 'processed',
   });
-  const idl = await anchor.Program.fetchIdl(GUMDROP_DISTRIBUTOR_ID, provider);
-  const program = new anchor.Program(idl, GUMDROP_DISTRIBUTOR_ID, provider);
+  const idl = await anchor.Program.fetchIdl(REDROP_DISTRIBUTOR_ID, provider);
+  const program = new anchor.Program(idl, REDROP_DISTRIBUTOR_ID, provider);
   log.debug('program id from anchor', program.programId.toBase58());
   return program;
 }

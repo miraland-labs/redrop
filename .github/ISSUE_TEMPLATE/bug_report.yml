@@ -12,7 +12,7 @@ body:
     attributes:
       label: Which package is this bug report for?
       options:
-        - gumdrop
+        - redrop
         - cli
         - other
     validations:
@@ -39,7 +39,7 @@ body:
       description: If applicable, include the command you used. This will be automatically formatted into code, so no need for backticks.
       render: shell
       placeholder: |
-        ts-node src/gumdrop-cli.ts create --claim-integration edition --edition-mint 7Hy3FqSQYiXyg4fyobZnSJhMvAqMmraBLaTq9QSFF9ip
+        ts-node src/redrop-cli.ts create --claim-integration edition --edition-mint 7Hy3FqSQYiXyg4fyobZnSJhMvAqMmraBLaTq9QSFF9ip
     validations:
       required: false
   - type: textarea

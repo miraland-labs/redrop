@@ -1,7 +1,7 @@
-# Gumdrop 
+# Redrop 
 
-See the [Metaplex Docs](https://docs.metaplex.com/airdrops/create-gumdrop) and the
-[Example Deployment](https://gumdrop.metaplex.com/) for more information. The Gumdrop Program Rust code can be here: [MPL](https://github.com/metaplex-foundation/metaplex-program-library/tree/master/gumdrop).
+See the [Metaplex Docs](https://docs.metaplex.com/airdrops/create-redrop) and the
+[Example Deployment](https://redrop.metaplex.com/) for more information. The Redrop Program Rust code can be here: [MPL](https://github.com/metaplex-foundation/metaplex-program-library/tree/master/redrop).
 
 ## Setup
 

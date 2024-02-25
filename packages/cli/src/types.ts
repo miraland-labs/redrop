@@ -1,5 +1,5 @@
-import { BN } from '@project-serum/anchor';
-import { PublicKey } from '@solana/web3.js';
+import { BN } from '@solarti/anchor';
+import { PublicKey } from '@solarti/web3.js';
 
 export enum MetadataKey {
   Uninitialized = 0,
